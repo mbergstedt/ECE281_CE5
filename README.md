@@ -23,7 +23,7 @@ Below are the hex values for the above intructions:
 4th instruction: 0xAC120054
 
 The simulation of the instructions is below.  The screenshot shows the registers that are used:
-[!alt text](https://github.com/mbergstedt/ECE281_CE5/blob/master/registers_screenshot.JPG?raw=true)
+![alt text](https://github.com/mbergstedt/ECE281_CE5/blob/master/registers_screenshot.JPG?raw=true)
 
 The simulation works because register 16, or $s0, is given the assigned value of 44, register 17, or $s1, is given the
 assigned value -37, and register 18, or $s2, has the value of 7, which is 44 plus -37.
