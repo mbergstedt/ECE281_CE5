@@ -210,7 +210,7 @@ begin
     end case;
   end process;
 
-  extsrc  <= controls(9); -- added for ori
+  extsrc   <= controls(9); -- added for ori
   regwrite <= controls(8);
   regdst   <= controls(7);
   alusrc   <= controls(6);
