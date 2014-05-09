@@ -23,22 +23,24 @@ entity controller is -- single cycle control decoder
   port(op, funct:          in  STD_LOGIC_VECTOR(5 downto 0);
        zero:               in  STD_LOGIC;
        memtoreg, memwrite: out STD_LOGIC;
-       pcsrc, alusrc:      out STD_LOGIC;
+       pcsrc:      			out STD_LOGIC;
+		 alusrc:					out STD_LOGIC_VECTOR(1 downto 0);
        regdst, regwrite:   out STD_LOGIC;
        jump:               out STD_LOGIC;
-       alucontrol:         out STD_LOGIC_VECTOR(2 downto 0);
-		 extsrc:				out STD_LOGIC); -- added for ori
+       alucontrol:         out STD_LOGIC_VECTOR(2 downto 0));
+--		 extsrc:				out STD_LOGIC); -- added for ori
 end;
 
 library IEEE; use IEEE.STD_LOGIC_1164.all;
 entity maindec is -- main control decoder
   port(op:                 in  STD_LOGIC_VECTOR(5 downto 0);
        memtoreg, memwrite: out STD_LOGIC;
-       branch, alusrc:     out STD_LOGIC;
+       branch:    			out STD_LOGIC;
+		 alusrc:					out STD_LOGIC_VECTOR(1 downto 0);
        regdst, regwrite:   out STD_LOGIC;
        jump:               out STD_LOGIC;
-       aluop:              out STD_LOGIC_VECTOR(1 downto 0);
-		 extsrc:				out STD_LOGIC); -- added for ori
+       aluop:              out STD_LOGIC_VECTOR(1 downto 0));
+--		 extsrc:				out STD_LOGIC); -- added for ori
 end;
 
 library IEEE; use IEEE.STD_LOGIC_1164.all;
@@ -52,7 +54,8 @@ library IEEE; use IEEE.STD_LOGIC_1164.all; use IEEE.STD_LOGIC_ARITH.all;
 entity datapath is  -- MIPS datapath
   port(clk, reset:        in  STD_LOGIC;
        memtoreg, pcsrc:   in  STD_LOGIC;
-       alusrc, regdst:    in  STD_LOGIC;
+		 alusrc:				  in  STD_LOGIC_VECTOR(1 downto 0);
+       regdst:    		  in  STD_LOGIC;
        regwrite, jump:    in  STD_LOGIC;
        alucontrol:        in  STD_LOGIC_VECTOR(2 downto 0);
        zero:              out STD_LOGIC;
@@ -138,16 +141,18 @@ architecture struct of mips is
     port(op, funct:          in  STD_LOGIC_VECTOR(5 downto 0);
          zero:               in  STD_LOGIC;
          memtoreg, memwrite: out STD_LOGIC;
-         pcsrc, alusrc:      out STD_LOGIC;
+         pcsrc:      		  out STD_LOGIC;
+		   alusrc:				  out STD_LOGIC_VECTOR(1 downto 0);
          regdst, regwrite:   out STD_LOGIC;
          jump:               out STD_LOGIC;
-         alucontrol:         out STD_LOGIC_VECTOR(2 downto 0);
-			extsrc:				  out STD_LOGIC); -- added for ori
+         alucontrol:         out STD_LOGIC_VECTOR(2 downto 0));
+			--extsrc:				  out STD_LOGIC); -- added for ori
   end component;
   component datapath
     port(clk, reset:        in  STD_LOGIC;
          memtoreg, pcsrc:   in  STD_LOGIC;
-         alusrc, regdst:    in  STD_LOGIC;
+		   alusrc:				 in  STD_LOGIC_VECTOR(1 downto 0);
+         regdst:    			 in  STD_LOGIC;
          regwrite, jump:    in  STD_LOGIC;
          alucontrol:        in  STD_LOGIC_VECTOR(2 downto 0);
          zero:              out STD_LOGIC;
@@ -156,14 +161,14 @@ architecture struct of mips is
          aluout, writedata: inout STD_LOGIC_VECTOR(31 downto 0);
          readdata:          in  STD_LOGIC_VECTOR(31 downto 0));
   end component;
-  signal memtoreg, alusrc, regdst, regwrite, jump, pcsrc: STD_LOGIC;
-  signal extsrc : STD_LOGIC; -- added for ori
+  signal memtoreg, regdst, regwrite, jump, pcsrc: STD_LOGIC;
+  signal alusrc: STD_LOGIC_VECTOR(1 downto 0);
   signal zero: STD_LOGIC;
   signal alucontrol: STD_LOGIC_VECTOR(2 downto 0);
 begin
   cont: controller port map(instr(31 downto 26), instr(5 downto 0),
                             zero, memtoreg, memwrite, pcsrc, alusrc,
-									 regdst, regwrite, jump, alucontrol, extsrc); -- added extsrc
+									 regdst, regwrite, jump, alucontrol); -- added extsrc
   dp: datapath port map(clk, reset, memtoreg, pcsrc, alusrc, regdst,
                         regwrite, jump, alucontrol, zero, pc, instr,
 								aluout, writedata, readdata);
@@ -173,11 +178,12 @@ architecture struct of controller is
   component maindec
     port(op:                 in  STD_LOGIC_VECTOR(5 downto 0);
          memtoreg, memwrite: out STD_LOGIC;
-         branch, alusrc:     out STD_LOGIC;
+         branch:     		  out STD_LOGIC;
+		   alusrc:				  out STD_LOGIC_VECTOR(1 downto 0);
          regdst, regwrite:   out STD_LOGIC;
          jump:               out STD_LOGIC;
-         aluop:              out STD_LOGIC_VECTOR(1 downto 0);
-			extsrc:				  out STD_LOGIC); -- added for ori
+         aluop:              out STD_LOGIC_VECTOR(1 downto 0));
+		--	extsrc:				  out STD_LOGIC); -- added for ori
   end component;
   component aludec
     port(funct:      in  STD_LOGIC_VECTOR(5 downto 0);
@@ -188,7 +194,7 @@ architecture struct of controller is
   signal branch: STD_LOGIC;
 begin
   md: maindec port map(op, memtoreg, memwrite, branch,
-                       alusrc, regdst, regwrite, jump, aluop, extsrc); -- added extsrc
+                       alusrc, regdst, regwrite, jump, aluop); -- added extsrc
   ad: aludec port map(funct, aluop, alucontrol);
 
   pcsrc <= branch and zero;
@@ -199,21 +205,21 @@ architecture behave of maindec is
 begin
   process(op) begin
     case op is
-      when "000000" => controls <= "0110000010"; -- Rtype
-      when "100011" => controls <= "0101001000"; -- LW
+      when "000000" => controls <= "1100000010"; -- Rtype
+      when "100011" => controls <= "1001001000"; -- LW
       when "101011" => controls <= "0001010000"; -- SW
       when "000100" => controls <= "0000100001"; -- BEQ
-      when "001000" => controls <= "0101000000"; -- ADDI
+      when "001000" => controls <= "1001000000"; -- ADDI
       when "000010" => controls <= "0000000100"; -- J, uses 3rd from last bit to signal jump
-		when "001101" => controls <= "1101000011"; -- added for ori
+		when "001101" => controls <= "1011000011"; -- added for ori
       when others   => controls <= "----------"; -- illegal op
     end case;
   end process;
 
-  extsrc   <= controls(9); -- added for ori
-  regwrite <= controls(8);
-  regdst   <= controls(7);
-  alusrc   <= controls(6);
+--  extsrc   <= controls(9); -- added for ori
+  regwrite <= controls(9);
+  regdst   <= controls(8);
+  alusrc   <= controls(7 downto 6); -- changed for ori
   branch   <= controls(5);
   memwrite <= controls(4);
   memtoreg <= controls(3);
@@ -283,7 +289,7 @@ architecture struct of datapath is
   end component;
   signal writereg: STD_LOGIC_VECTOR(4 downto 0);
   signal pcjump, pcnext, pcnextbr, pcplus4, pcbranch: STD_LOGIC_VECTOR(31 downto 0);
-  signal signimm, extimmsh: STD_LOGIC_VECTOR(31 downto 0);
+  signal signimm, signimmsh: STD_LOGIC_VECTOR(31 downto 0);
   signal zeroimm, imm: STD_LOGIC_VECTOR(31 downto 0); -- added for ori
   signal extsrc: STD_LOGIC; -- added for ori
   signal srca, srcb, result: STD_LOGIC_VECTOR(31 downto 0);
@@ -292,8 +298,8 @@ begin
   pcjump <= pcplus4(31 downto 28) & instr(25 downto 0) & "00";
   pcreg: flopr generic map(32) port map(clk, reset, pcnext, pc);
   pcadd1: adder port map(pc, X"00000004", pcplus4);
-  immsh: sl2 port map(imm, extimmsh);
-  pcadd2: adder port map(pcplus4, extimmsh, pcbranch);
+  immsh: sl2 port map(signimm, signimmsh);
+  pcadd2: adder port map(pcplus4, signimmsh, pcbranch);
   pcbrmux: mux2 generic map(32) port map(pcplus4, pcbranch, pcsrc, pcnextbr);
   pcmux: mux2 generic map(32) port map(pcnextbr, pcjump, jump, pcnext);
 
@@ -307,11 +313,11 @@ begin
   ze: zeroext port map(instr(15 downto 0), zeroimm); -- added for ori
 
   -- ALU logic
-  srcbmux: mux2 generic map(32) port map(writedata, imm, alusrc, srcb);
+  srcbmux: mux2 generic map(32) port map(writedata, imm, alusrc(0), srcb);
   mainalu:  alu port map(srca, srcb, alucontrol, aluout, zero);
   
   -- zero or sign extended
-  signmux: mux2 generic map(32) port map(signimm, zeroimm, extsrc, imm);
+  signmux: mux2 generic map(32) port map(signimm, zeroimm, alusrc(1), imm);
 end;
 
 architecture behave of alu is
