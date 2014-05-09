@@ -41,15 +41,15 @@ would always execute the zero extend.  After looking at the truth tables at the 
 signal to the a 2 bit alusrc.  Upon making the adjustments to the vhd file, the code worked the first time I ran it.
 
 To change the code to perform like the schematic, I first went through and changed all alusrc inputs and outputs to
-```vhdl STD_LOGIC_VECTOR(1 downto 0)``` to be able to hold the additional control signal.  Next in the main decoder portion, I
+```vhdlSTD_LOGIC_VECTOR(1 downto 0)``` to be able to hold the additional control signal.  Next in the main decoder portion, I
 went in and changed the controls signal to 10 bit rather than 9 bit.  I also added a condition for when op is 
-```vhdl "001101"``` which is the opcode for an ori instruction.  In this condition, the controls signal was assigned the values
+```vhdl"001101"``` which is the opcode for an ori instruction.  In this condition, the controls signal was assigned the values
 from the main decoder truth table above, with the exception being that the jump signal came before the alu opcode.  In the alu
-decoder, I had the alu perform an or operation for an aluop of ```vhdl "11"```.  Then, I added a zero extend component that
-only performed ```vhdl X"0000" & a``` where a was the value being extended.  Next, in the logic portion, I added two signals
+decoder, I had the alu perform an or operation for an aluop of ```vhdl"11"```.  Then, I added a zero extend component that
+only performed ```vhdlX"0000" & a``` where a was the value being extended.  Next, in the logic portion, I added two signals
 for the zero immediate, which was the zero extended value, and for the final immediate.  I had the code go through the zero
-extend in the same way as the sign extend, and stored the value in ```vhdl zeroimm```.  I then added a mux that chose between
-the sign immediate and the zero immediate based on the bit 1 of alusrc, and then stored it into ```vhdl imm```.  This last
+extend in the same way as the sign extend, and stored the value in ```vhdlzeroimm```.  I then added a mux that chose between
+the sign immediate and the zero immediate based on the bit 1 of alusrc, and then stored it into ```vhdlimm```.  This last
 signal was used in the alu mux that determined source b.  Lastly I inserted the hex code for the instruction into the
 testbench.  The code for that part was:
 ```vhdl
